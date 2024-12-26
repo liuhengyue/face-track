@@ -7,7 +7,7 @@ import torch
 import gc
 import sys
 sys.path.append("./sam2")
-from sam2.build_sam import build_sam2_video_predictor
+from src.build_sam import build_sam2_video_predictor
 
 color = [(255, 0, 0)]
 
@@ -39,11 +39,15 @@ def prepare_frames_or_path(video_path):
     else:
         raise ValueError("Invalid video_path format. Should be .mp4 or a directory of jpg frames.")
 
+def load_reference_image(ref_path):
+    pass
+
 def main(args):
     model_cfg = determine_model_cfg(args.model_path)
     predictor = build_sam2_video_predictor(model_cfg, args.model_path, device="cuda:0")
     frames_or_path = prepare_frames_or_path(args.video_path)
     prompts = load_txt(args.txt_path)
+
 
     frame_rate = 30
     if args.save_to_video:
@@ -70,11 +74,18 @@ def main(args):
     out = cv2.VideoWriter(args.video_output_path, fourcc, frame_rate, (width, height))
 
     with torch.inference_mode(), torch.autocast("cuda", dtype=torch.float16):
-        state = predictor.init_state(frames_or_path, offload_video_to_cpu=True)
-        bbox, track_label = prompts[0]
-        _, _, masks = predictor.add_new_points_or_box(state, box=bbox, frame_idx=0, obj_id=0)
+        state = predictor.init_state(frames_or_path, args.ref_path, offload_video_to_cpu=True)
+        # bbox, track_label = prompts[0]
+        # prompt from the reference image
+        bbox = (0, 0, state['ref_width'] / predictor.image_size, state['ref_height'] / predictor.image_size) # ((x, y, x + w, y + h), 0)
+        track_label = 0
+        _, _, masks = predictor.add_new_points_or_box(state, box=bbox, frame_idx=0, obj_id=0, normalize_coords=False)
+        # use center click
+        # points = [(0.5 * state['ref_width'] / predictor.image_size, 0.5 * state['ref_height'] / predictor.image_size)]
+        # labels = [1]
+        # _, _, masks = predictor.add_new_points_or_box(state, points=points, labels=labels, frame_idx=0, obj_id=0, normalize_coords=False)
 
-        for frame_idx, object_ids, masks in predictor.propagate_in_video(state):
+        for frame_idx, object_ids, masks in predictor.propagate_in_video(state, start_frame_idx=1):
             mask_to_vis = {}
             bbox_to_vis = {}
 
@@ -92,7 +103,7 @@ def main(args):
                 mask_to_vis[obj_id] = mask
 
             if args.save_to_video:
-                img = loaded_frames[frame_idx]
+                img = loaded_frames[frame_idx - 1]
                 for obj_id, mask in mask_to_vis.items():
                     mask_img = np.zeros((height, width, 3), np.uint8)
                     mask_img[mask] = color[(obj_id + 1) % len(color)]
@@ -118,5 +129,6 @@ if __name__ == "__main__":
     parser.add_argument("--model_path", default="sam2/checkpoints/sam2.1_hiera_base_plus.pt", help="Path to the model checkpoint.")
     parser.add_argument("--video_output_path", default="demo.mp4", help="Path to save the output video.")
     parser.add_argument("--save_to_video", default=True, help="Save results to a video.")
+    parser.add_argument("--ref_path", default=None, help="Path to the reference image (a face crop).")
     args = parser.parse_args()
     main(args)

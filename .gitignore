@@ -164,3 +164,7 @@ visualization/*
 
 # For Testing
 demo/
+
+.idea/
+.idea/*
+.idea/face-track.iml
