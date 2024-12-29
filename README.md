@@ -86,7 +86,12 @@ data/
 
 Check the visualization of face bboxes on original video in file [visualization.ipynb](scripts/visualization.ipynb).
 
-The corresponding annotated videos are stored as `demo.mp4`.
+The corresponding annotated videos are stored as `demo.mp4`. One example shown here:
+
+
+https://github.com/user-attachments/assets/794cc102-f5c0-4bd1-8069-5c69e8ad3edb
+
+
 
 ## Acknowledgment
 
