@@ -1,44 +1,40 @@
-<div align="center">
-<img align="left" width="100" height="100" src="https://github.com/user-attachments/assets/1834fc25-42ef-4237-9feb-53a01c137e83" alt="">
+# FaceTrack
+SAMURAI: Adapting Segment Anything Model for Zero-Shot Visual Tracking with Motion-Aware Memory
 
-# SAMURAI: Adapting Segment Anything Model for Zero-Shot Visual Tracking with Motion-Aware Memory
-
-[Cheng-Yen Yang](https://yangchris11.github.io), [Hsiang-Wei Huang](https://hsiangwei0903.github.io/), [Wenhao Chai](https://rese1f.github.io/), [Zhongyu Jiang](https://zhyjiang.github.io/#/), [Jenq-Neng Hwang](https://people.ece.uw.edu/hwang/)
-
-[Information Processing Lab, University of Washington](https://ipl-uw.github.io/) 
-</div>
-
-
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/samurai-adapting-segment-anything-model-for-1/visual-object-tracking-on-lasot-ext)](https://paperswithcode.com/sota/visual-object-tracking-on-lasot-ext?p=samurai-adapting-segment-anything-model-for-1)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/samurai-adapting-segment-anything-model-for-1/visual-object-tracking-on-got-10k)](https://paperswithcode.com/sota/visual-object-tracking-on-got-10k?p=samurai-adapting-segment-anything-model-for-1)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/samurai-adapting-segment-anything-model-for-1/visual-object-tracking-on-needforspeed)](https://paperswithcode.com/sota/visual-object-tracking-on-needforspeed?p=samurai-adapting-segment-anything-model-for-1)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/samurai-adapting-segment-anything-model-for-1/visual-object-tracking-on-lasot)](https://paperswithcode.com/sota/visual-object-tracking-on-lasot?p=samurai-adapting-segment-anything-model-for-1)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/samurai-adapting-segment-anything-model-for-1/visual-object-tracking-on-otb-2015)](https://paperswithcode.com/sota/visual-object-tracking-on-otb-2015?p=samurai-adapting-segment-anything-model-for-1)
-
-[[Arxiv]](https://arxiv.org/abs/2411.11922) [[Project Page]](https://yangchris11.github.io/samurai/) [[Raw Results]](https://drive.google.com/drive/folders/1ssiDmsC7mw5AiItYQG4poiR1JgRq305y?usp=sharing) 
+[Hengyue Liu](https://hengyueliu.com)
 
 This repository is the official implementation of SAMURAI: Adapting Segment Anything Model for Zero-Shot Visual Tracking with Motion-Aware Memory
 
 https://github.com/user-attachments/assets/9d368ca7-2e9b-4fed-9da0-d2efbf620d88
 
-All rights are reserved to the copyright owners (TM & © Universal (2019)). This clip is not intended for commercial use and is solely for academic demonstration in a research paper. Original source can be found [here](https://www.youtube.com/watch?v=cwUzUzpG8aM&t=4s).
+All rights are reserved to the copyright owners (TM & © Universal (2019)).
 
 ## Getting Started
 
-#### SAMURAI Installation 
+#### Install Basics (works for cuda 11.8)
+```
+conda create --name=facetrack python=3.10
+conda activate facetrack
+pip install tensorflow[and-cuda]
+pip install tf-keras
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install deepface
+pip install scenedetect[opencv]
+```
+
+#### Tracker (SAMURAI) Installation 
 
 SAM 2 needs to be installed first before use. The code requires `python>=3.10`, as well as `torch>=2.3.1` and `torchvision>=0.18.1`. Please follow the instructions [here](https://github.com/facebookresearch/sam2?tab=readme-ov-file) to install both PyTorch and TorchVision dependencies. You can install **the SAMURAI version** of SAM 2 on a GPU machine using:
 ```
 cd sam2
-pip install -e .
 pip install -e ".[notebooks]"
 ```
 
 Please see [INSTALL.md](https://github.com/facebookresearch/sam2/blob/main/INSTALL.md) from the original SAM 2 repository for FAQs on potential issues and solutions.
 
-Install other requirements:
+Install a fix, since the project uses both Tensorflow (cudnn 9.3) and PyTorch (9.1), need a compatible cudnn version after installing both:
 ```
-pip install matplotlib==3.7 tikzplotlib jpeg4py opencv-python lmdb pandas scipy loguru
+pip install nvidia-cudnn-cu12==9.3.0.75
 ```
 
 #### SAM 2.1 Checkpoint Download
@@ -49,91 +45,53 @@ cd checkpoints && \
 cd ..
 ```
 
+## Demo
+
 #### Data Preparation
 
 Please prepare the data in the following format:
 ```
-data/LaSOT
-├── airplane/
-│   ├── airplane-1/
-│   │   ├── full_occlusion.txt
-│   │   ├── groundtruth.txt
-│   │   ├── img
-│   │   ├── nlp.txt
-│   │   └── out_of_view.txt
-│   ├── airplane-2/
-│   ├── airplane-3/
-│   ├── ...
-├── basketball
-├── bear
-├── bicycle
-...
-├── training_set.txt
-└── testing_set.txt
+data/
+├── demo1/
+│   ├── video
+|   |── reference face image 
 ```
 
 #### Main Inference
 ```
-python scripts/main_inference.py 
+python scripts/main_facetrack.py --video_path data/demo1/top_gun.mp4 --ref_path data/demo1/tom_cruise.jpg
 ```
 
-## Demo on Custom Video
+#### Data Preparation
 
-To run the demo with your custom video or frame directory, use the following examples:
-
-**Note:** The `.txt` file contains a single line with the bounding box of the first frame in `x,y,w,h` format.
-
-### Input is Video File
-
+After the run, you will have a folder `clips/` containing all crops containing the target face, with a json file `metadata.json` containing annotations of face coordinates and timestamps:
 ```
-python scripts/demo.py --video_path <your_video.mp4> --txt_path <path_to_first_frame_bbox.txt>
+data/
+├── demo1/
+│   ├── video.mp4
+|   |── reference.png 
+
+### generated files ###
+
+|   |── clips/ 
+|   |   |── clip-0000.mp4 
+|   |   |── clip-0001.mp4
+|   |   |── ...
+|   |── metadata.json
 ```
 
-### Input is Frame Folder
-```
-# Only JPG images are supported
-python scripts/demo.py --video_path <your_frame_directory> --txt_path <path_to_first_frame_bbox.txt>
-```
+#### Data Preparation
 
-## FAQs
-**Question 1:** Does SAMURAI need training? [issue 34](https://github.com/yangchris11/samurai/issues/34)
-
-**Answer 1:** Unlike real-life samurai, the proposed samurai do not require additional training. It is a zero-shot method, we directly use the weights from SAM 2.1 to conduct VOT experiments. Kalman filter is used to estimate the current and future state (bounding box location and scale in our case) of a moving object based on measurements over time, it is a common approach that had been adapt in the field of tracking for a long time which does not requires any training. Please refer to code for more detail.
-
-**Question 2:** Does SAMURAI support streaming input (e.g. webcam)?
-
-**Answer 2:** Not yet. The existing code doesn't support live/streaming video as we inherit most of the codebase from the amazing SAM 2. Some discussion that you might be interested in: facebookresearch/sam2#90, facebookresearch/sam2#388 (comment).
-
-**Question 3:** How to use SAMURAI in longer video?
-
-**Answer 3:** See the discussion from sam2 https://github.com/facebookresearch/sam2/issues/264.
-
+Check the visualization of face bboxes on original video in file [visualization.ipynb](scripts/visualization.ipynb). 
 
 ## Acknowledgment
 
-SAMURAI is built on top of [SAM 2](https://github.com/facebookresearch/sam2?tab=readme-ov-file) by Meta FAIR.
+[SAM 2](https://github.com/facebookresearch/sam2?tab=readme-ov-file)
 
-The VOT evaluation code is modifed from [VOT Toolkit](https://github.com/votchallenge/toolkit) by Luka Čehovin Zajc.
+[SAMURAI](https://github.com/yangchris11/samurai/tree/master)
 
-## Citation
+[PySceneDetect](https://github.com/Breakthrough/PySceneDetect/tree/main)
 
-Please consider citing our paper and the wonderful `SAM 2` if you found our work interesting and useful.
-```
-@article{ravi2024sam2,
-  title={SAM 2: Segment Anything in Images and Videos},
-  author={Ravi, Nikhila and Gabeur, Valentin and Hu, Yuan-Ting and Hu, Ronghang and Ryali, Chaitanya and Ma, Tengyu and Khedr, Haitham and R{\"a}dle, Roman and Rolland, Chloe and Gustafson, Laura and Mintun, Eric and Pan, Junting and Alwala, Kalyan Vasudev and Carion, Nicolas and Wu, Chao-Yuan and Girshick, Ross and Doll{\'a}r, Piotr and Feichtenhofer, Christoph},
-  journal={arXiv preprint arXiv:2408.00714},
-  url={https://arxiv.org/abs/2408.00714},
-  year={2024}
-}
+[DeepFace](https://github.com/serengil/deepface/tree/master)
 
-@misc{yang2024samurai,
-      title={SAMURAI: Adapting Segment Anything Model for Zero-Shot Visual Tracking with Motion-Aware Memory}, 
-      author={Cheng-Yen Yang and Hsiang-Wei Huang and Wenhao Chai and Zhongyu Jiang and Jenq-Neng Hwang},
-      year={2024},
-      eprint={2411.11922},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2411.11922}, 
-}
-```
+
