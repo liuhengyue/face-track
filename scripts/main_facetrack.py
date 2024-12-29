@@ -1,10 +1,15 @@
 import argparse
 import os.path as osp
 import sys
-# face detection and tracking
-from src.face_track import FaceTrack
-# tracking
+# lazy add as sources
+# get the absolute path to the project root (parent of scripts/)
+PROJECT_ROOT = osp.join(osp.dirname(__file__), '..')
+sys.path.append(osp.abspath(PROJECT_ROOT))
 sys.path.append("./sam2")
+sys.path.append("./src")
+# face detection and tracking
+from src import FaceTrack
+# tracking
 from sam2.build_sam import build_sam2_video_predictor
 
 def determine_model_cfg(model_path):

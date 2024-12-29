@@ -15,9 +15,10 @@ pip install tf-keras
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 pip install deepface
 pip install scenedetect[opencv]
+pip install loguru scipy
 ```
 
-#### Tracker (SAMURAI) Installation 
+#### Install SAMURAI for tracking 
 
 SAM2-based VOS method SAMURAI is used. SAM2 needs to be installed first before use. The code requires `python>=3.10`, as well as `torch>=2.3.1` and `torchvision>=0.18.1`. Please follow the instructions [here](https://github.com/facebookresearch/sam2?tab=readme-ov-file) to install both PyTorch and TorchVision dependencies. You can install **the SAMURAI version** of SAM 2 on a GPU machine using:
 ```
@@ -27,8 +28,10 @@ pip install -e ".[notebooks]"
 
 Please see [INSTALL.md](https://github.com/facebookresearch/sam2/blob/main/INSTALL.md) from the original SAM 2 repository for FAQs on potential issues and solutions.
 
-Install a fix, since the project uses both Tensorflow (cudnn 9.3) and PyTorch (9.1), need a compatible cudnn version after installing both:
+#### Install a fix
+Since the project uses both Tensorflow (cudnn 9.3) and PyTorch (9.1), need a compatible cudnn version after installing both:
 ```
+pip uninstall nvidia-cudnn-cu11
 pip install nvidia-cudnn-cu12==9.3.0.75
 ```
 
@@ -57,6 +60,9 @@ data/
 ```
 python scripts/main_facetrack.py --video_path data/demo1/top_gun.mp4 --ref_path data/demo1/tom_cruise.jpg
 ```
+Note: Need at least 8GB memory to run successfully. We can relax this requirement by using smaller SAM2 or deepface model.
+
+Current default setting uses SAM2 model`sam2.1_hiera_base_plus.pt`, deepface models `VGG-Face` for verification, and `retinaface` for face detection.
 
 #### Data Preparation
 
