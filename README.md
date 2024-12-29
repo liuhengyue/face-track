@@ -1,13 +1,8 @@
 # FaceTrack
-SAMURAI: Adapting Segment Anything Model for Zero-Shot Visual Tracking with Motion-Aware Memory
+
+This repository is an implementation to detect and track the reference face from a video.
 
 [Hengyue Liu](https://hengyueliu.com)
-
-This repository is the official implementation of SAMURAI: Adapting Segment Anything Model for Zero-Shot Visual Tracking with Motion-Aware Memory
-
-https://github.com/user-attachments/assets/9d368ca7-2e9b-4fed-9da0-d2efbf620d88
-
-All rights are reserved to the copyright owners (TM & © Universal (2019)).
 
 ## Getting Started
 
@@ -24,7 +19,7 @@ pip install scenedetect[opencv]
 
 #### Tracker (SAMURAI) Installation 
 
-SAM 2 needs to be installed first before use. The code requires `python>=3.10`, as well as `torch>=2.3.1` and `torchvision>=0.18.1`. Please follow the instructions [here](https://github.com/facebookresearch/sam2?tab=readme-ov-file) to install both PyTorch and TorchVision dependencies. You can install **the SAMURAI version** of SAM 2 on a GPU machine using:
+SAM2-based VOS method SAMURAI is used. SAM2 needs to be installed first before use. The code requires `python>=3.10`, as well as `torch>=2.3.1` and `torchvision>=0.18.1`. Please follow the instructions [here](https://github.com/facebookresearch/sam2?tab=readme-ov-file) to install both PyTorch and TorchVision dependencies. You can install **the SAMURAI version** of SAM 2 on a GPU machine using:
 ```
 cd sam2
 pip install -e ".[notebooks]"
@@ -42,6 +37,7 @@ pip install nvidia-cudnn-cu12==9.3.0.75
 ```
 cd checkpoints && \
 ./download_ckpts.sh && \
+cd .. && \
 cd ..
 ```
 
@@ -68,11 +64,11 @@ After the run, you will have a folder `clips/` containing all crops containing t
 ```
 data/
 ├── demo1/
-│   ├── video.mp4
-|   |── reference.png 
+│   ├── video_file_name.mp4
+|   |── reference_image.png 
 
 ### generated files ###
-
+|   |── [video_file_name]_scenes/ # contains splitted scenes 
 |   |── clips/ 
 |   |   |── clip-0000.mp4 
 |   |   |── clip-0001.mp4
@@ -82,7 +78,9 @@ data/
 
 #### Data Preparation
 
-Check the visualization of face bboxes on original video in file [visualization.ipynb](scripts/visualization.ipynb). 
+Check the visualization of face bboxes on original video in file [visualization.ipynb](scripts/visualization.ipynb).
+
+The corresponding annotated videos are stored as `demo.mp4`.
 
 ## Acknowledgment
 

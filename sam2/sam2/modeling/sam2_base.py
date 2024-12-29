@@ -662,18 +662,20 @@ class SAM2Base(torch.nn.Module):
                 valid_indices = [] 
                 if frame_idx > 1:  # Ensure we have previous frames to evaluate
                     for i in range(frame_idx - 1, 1, -1):  # Iterate backwards through previous frames
-                        iou_score = output_dict["non_cond_frame_outputs"][i]["best_iou_score"]  # Get mask affinity score
-                        obj_score = output_dict["non_cond_frame_outputs"][i]["object_score_logits"]  # Get object score
-                        kf_score = output_dict["non_cond_frame_outputs"][i]["kf_score"] if "kf_score" in output_dict["non_cond_frame_outputs"][i] else None  # Get motion score if available
-                        # Check if the scores meet the criteria for being a valid index
-                        if iou_score.item() > self.memory_bank_iou_threshold and \
-                           obj_score.item() > self.memory_bank_obj_score_threshold and \
-                           (kf_score is None or kf_score.item() > self.memory_bank_kf_score_threshold):
-                            valid_indices.insert(0, i)  
-                        # Check the number of valid indices
-                        if len(valid_indices) >= self.max_obj_ptrs_in_encoder - 1:  
-                            break
-                if frame_idx - 1 not in valid_indices: 
+                        # if we did not have previous outputs
+                        if i in output_dict["non_cond_frame_outputs"]:
+                            iou_score = output_dict["non_cond_frame_outputs"][i]["best_iou_score"]  # Get mask affinity score
+                            obj_score = output_dict["non_cond_frame_outputs"][i]["object_score_logits"]  # Get object score
+                            kf_score = output_dict["non_cond_frame_outputs"][i]["kf_score"] if "kf_score" in output_dict["non_cond_frame_outputs"][i] else None  # Get motion score if available
+                            # Check if the scores meet the criteria for being a valid index
+                            if iou_score.item() > self.memory_bank_iou_threshold and \
+                               obj_score.item() > self.memory_bank_obj_score_threshold and \
+                               (kf_score is None or kf_score.item() > self.memory_bank_kf_score_threshold):
+                                valid_indices.insert(0, i)
+                            # Check the number of valid indices
+                            if len(valid_indices) >= self.max_obj_ptrs_in_encoder - 1:
+                                break
+                if (frame_idx - 1 not in valid_indices) and len(valid_indices):
                     valid_indices.append(frame_idx - 1)
                 for t_pos in range(1, self.num_maskmem):  # Iterate over the number of mask memories
                     idx = t_pos - self.num_maskmem  # Calculate the index for valid indices
